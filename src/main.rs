@@ -127,7 +127,9 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Vec<Channel>> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
-    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| tags.iter().any(|tag| tag.as_str() == Some("sysmon")));
+    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| {
+        tags.iter().any(|tag| tag.as_str() == Some("sysmon"))
+    });
     if sysmon_tag {
         return None;
     }
