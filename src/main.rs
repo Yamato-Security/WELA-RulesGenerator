@@ -145,8 +145,10 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
                 }
             }
         }
-        let event_ids: Vec<String> = event_ids.into_iter().collect();
-        let subcategories: Vec<String> = subcategories.into_iter().collect();
+        let mut event_ids: Vec<String> = event_ids.into_iter().collect();
+        event_ids.sort();
+        let mut subcategories: Vec<String> = subcategories.into_iter().collect();
+        subcategories.sort();
         return Some(json!({
             "id": uuid,
             "title": title,
