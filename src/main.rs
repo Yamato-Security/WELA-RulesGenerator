@@ -127,7 +127,9 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Vec<Channel>> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
-    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| tags.iter().any(|tag| tag.as_str() == Some("sysmon")));
+    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| {
+        tags.iter().any(|tag| tag.as_str() == Some("sysmon"))
+    });
     if sysmon_tag {
         return None;
     }
@@ -135,6 +137,9 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
         let uuid = doc["id"].as_str().unwrap_or("");
         let title = doc["title"].as_str().unwrap_or("");
         let level = doc["level"].as_str().unwrap_or("");
+        let description = doc["description"].as_str().unwrap_or("");
+        let category = doc["logsource"]["category"].as_str().unwrap_or("");
+        let services = doc["logsource"]["service"].as_str().unwrap_or("");
         let mut event_ids = HashSet::new();
         let mut subcategories = HashSet::new();
         extract_event_ids(&doc, &mut event_ids);
@@ -155,7 +160,10 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
             "channel": ch.iter().map(|c| c.to_string()).collect::<Vec<String>>(),
             "level": level,
             "event_ids": event_ids,
-            "subcategory_guids": subcategories
+            "subcategory_guids": subcategories,
+            "description": description,
+            "service": services,
+            "category": category,
         }));
     }
     None
