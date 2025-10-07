@@ -28,10 +28,11 @@ fn list_yml_files(dir: &str) -> Vec<String> {
     let mut yml_files = Vec::new();
     for entry in WalkDir::new(dir).into_iter().filter_map(|e| e.ok()) {
         let path = entry.path();
-        if path.is_file() && path.extension().and_then(|ext| ext.to_str()) == Some("yml") {
-            if let Some(path_str) = path.to_str() {
-                yml_files.push(path_str.to_string());
-            }
+        if path.is_file()
+            && path.extension().and_then(|ext| ext.to_str()) == Some("yml")
+            && let Some(path_str) = path.to_str()
+        {
+            yml_files.push(path_str.to_string());
         }
     }
 
@@ -127,9 +128,9 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Vec<Channel>> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
-    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| {
-        tags.iter().any(|tag| tag.as_str() == Some("sysmon"))
-    });
+    let sysmon_tag = doc["tags"]
+        .as_vec()
+        .is_some_and(|tags| tags.iter().any(|tag| tag.as_str() == Some("sysmon")));
     if sysmon_tag {
         return None;
     }
@@ -140,6 +141,11 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
         let description = doc["description"].as_str().unwrap_or("");
         let category = doc["logsource"]["category"].as_str().unwrap_or("");
         let services = doc["logsource"]["service"].as_str().unwrap_or("");
+        let tags = doc["tags"].as_vec().map_or(vec![], |t| {
+            t.iter()
+                .filter_map(|tag| tag.as_str().map(|s| s.to_string()))
+                .collect()
+        });
         let mut event_ids = HashSet::new();
         let mut subcategories = HashSet::new();
         extract_event_ids(&doc, &mut event_ids);
@@ -164,6 +170,7 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
             "description": description,
             "service": services,
             "category": category,
+            "tags": tags
         }));
     }
     None
