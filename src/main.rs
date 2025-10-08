@@ -143,7 +143,34 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
         let services = doc["logsource"]["service"].as_str().unwrap_or("");
         let tags = doc["tags"].as_vec().map_or(vec![], |t| {
             t.iter()
-                .filter_map(|tag| tag.as_str().map(|s| s.to_string()))
+                .filter_map(|tag| {
+                    tag.as_str().map(|s| {
+                        let mut result = s.to_string();
+                        result = match result.as_str() {
+                            "attack.reconnaissance" => "TA0043".to_string(),
+                            "attack.resource-development" => "TA0042".to_string(),
+                            "attack.initial-access" => "TA0001".to_string(),
+                            "attack.execution" => "TA0002".to_string(),
+                            "attack.persistence" => "TA0003".to_string(),
+                            "attack.privilege-escalation" => "TA0004".to_string(),
+                            "attack.defense-evasion" => "TA0005".to_string(),
+                            "attack.credential-access" => "TA0006".to_string(),
+                            "attack.discovery" => "TA0007".to_string(),
+                            "attack.lateral-movement" => "TA0008".to_string(),
+                            "attack.collection" => "TA0009".to_string(),
+                            "attack.command-and-control" => "TA0011".to_string(),
+                            "attack.exfiltration" => "TA0010".to_string(),
+                            "attack.impact" => "TA0040".to_string(),
+                            _ => result,
+                        };
+
+                        if result.starts_with("attack.t") {
+                            result = result.replace("attack.t", "T");
+                        }
+
+                        result
+                    })
+                })
                 .collect()
         });
         let mut event_ids = HashSet::new();
