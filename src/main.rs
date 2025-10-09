@@ -141,7 +141,7 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
         let description = doc["description"].as_str().unwrap_or("");
         let category = doc["logsource"]["category"].as_str().unwrap_or("");
         let services = doc["logsource"]["service"].as_str().unwrap_or("");
-        let tags = doc["tags"].as_vec().map_or(vec![], |t| {
+        let mut tags = doc["tags"].as_vec().map_or(vec![], |t| {
             t.iter()
                 .filter_map(|tag| {
                     tag.as_str().map(|s| {
@@ -173,6 +173,21 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
                 })
                 .collect()
         });
+        let mut parent_techniques = HashSet::new();
+        for tag in &tags {
+            if tag.starts_with("T")
+                && tag.contains('.')
+                && let Some(parent) = tag.split('.').next()
+            {
+                parent_techniques.insert(parent.to_string());
+            }
+        }
+        for parent in parent_techniques {
+            if !tags.contains(&parent) {
+                tags.push(parent);
+            }
+        }
+
         let mut event_ids = HashSet::new();
         let mut subcategories = HashSet::new();
         extract_event_ids(&doc, &mut event_ids);
